@@ -13,7 +13,10 @@ using Newtonsoft.Json;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Threading;
-
+using QRCoder;
+using SelectPdf;
+using System.Text;
+using System.Net;
 namespace ProjectParserWF
 {
     public partial class Form1 : Form
@@ -26,9 +29,12 @@ namespace ProjectParserWF
             dataGridView1.Columns[6].Width = 250;
             progressBar1.Visible = false;
             label2.Visible = false;
+            AnnouncementInfo.html = File.ReadAllText("base.html", encoding: Encoding.UTF8);
+            pictureBox1.Enabled = false;
         }
         public class AnnouncementInfo
         {
+            public static string html { set; private get; }
             public string Id { get; set; }
             public string Name { get; set; }
             public string Place { get; set; }
@@ -36,9 +42,43 @@ namespace ProjectParserWF
             public string Description { get; set; }
             public string TimePublished { get; set; }
             public string Url { get; set; }
+            public string Image { get; set; }
             public AnnouncementInfo()
             {
 
+            }
+            public string UrlToQr(string name)
+            {
+
+                PayloadGenerator.Url urlPayload = new PayloadGenerator.Url(Url);
+                QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(urlPayload);
+                QRCode qrCode = new QRCode(qrCodeData);
+                Bitmap qrCodeImage = qrCode.GetGraphic(20);
+                qrCodeImage.Save(name);
+                return name;
+            }
+            public void SaveAsPdf(string name)
+            {
+                FileInfo qr = new FileInfo(UrlToQr("qr.png"));
+                string ht = html.Replace("#IMG", Image);
+                ht = ht.Replace("#ID", Id);
+                ht = ht.Replace("#NAME", Name);
+                ht = ht.Replace("#QR", qr.FullName);
+                ht =ht.Replace("#DESC", Description);
+                ht = ht.Replace("#PLACE", Place);
+                ht = ht.Replace("#PRICE", Price);
+                ht=ht.Replace("#TP", TimePublished);
+
+                //Console.WriteLine(ht);
+                HtmlToPdf htmlToPdf = new HtmlToPdf();
+                htmlToPdf.Options.PdfPageSize = PdfPageSize.A4;
+                htmlToPdf.Options.PdfPageOrientation = PdfPageOrientation.Portrait;
+                PdfDocument pdf = htmlToPdf.ConvertHtmlString(ht, ".");
+                pdf.Save(name + ".pdf");
+                File.Delete(qr.FullName);
+                pdf.Close();
+                Console.WriteLine(name + " saved");
             }
         }
         List<AnnouncementInfo> ans = new List<AnnouncementInfo>();
@@ -113,6 +153,7 @@ namespace ProjectParserWF
                         ai.Place = Regex.Replace(item.QuerySelector("div.location").InnerText.Trim(), @"\s{2}", "");
                         ai.Price = Regex.Replace(item.QuerySelector("div.price").InnerText.Trim(), @"\s{2}", "");
                         ai.Description = Regex.Replace(item.QuerySelector("div.description").InnerText.Trim(), @"\s{2}", "");
+                        ai.Image = Regex.Replace(item.QuerySelector("img[data-src]").GetAttributeValue("data-src", "").Trim(), @"\s{2}", "");
                         var d = item.QuerySelector("span.date-posted");
                         if (d != null)
                         {
@@ -135,17 +176,56 @@ namespace ProjectParserWF
             }
             else
             {
-                progressBar1.Value = 0;
-                progressBar1.Maximum = ans.Count;
-                progressBar1.Visible = true;
-                label2.Visible = true;
-                Write("Announcments");
-                Task.Run(new Action(() =>
+                saveFileDialog1.DefaultExt = "xlsx";
+                saveFileDialog1.Filter = "Excel file(*.xlsx;*xls)|*.xlsx;*.xls";
+                string name="";
+                //do
+                //{
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
-                    Thread.Sleep(2000);
-                    System.Diagnostics.Process.Start("Announcments.xlsx");
-                }));
+                    name = saveFileDialog1.FileName;
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = ans.Count;
+                    progressBar1.Visible = true;
+                    label2.Visible = true;
+                    Write(name.Replace(".xlsx", ""));
+                    Task.Run(new Action(() =>
+                    {
+                        Thread.Sleep(2000);
+                        if (name.Contains(".xlsx"))
+                        {
+                            System.Diagnostics.Process.Start(name);
+                        }
+                        else
+                        {
+                            System.Diagnostics.Process.Start(name + ".xlsx");
+                        }
+
+                    }));
+                }
+                        //break;
+                //    }
+                //} while (true);
+                //Interaction.InputBox("Question?", "Title", "Default Text");
                 
+                
+            }
+        }
+
+        private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            ans[e.RowIndex].SaveAsPdf(e.RowIndex.ToString());
+            System.Diagnostics.Process.Start(e.RowIndex.ToString() + ".pdf");
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            pictureBox1.Enabled = true;
+            var request = WebRequest.Create(ans[e.RowIndex].Image);
+            using (var response = request.GetResponse())
+            using (var stream = response.GetResponseStream())
+            {
+                pictureBox1.Image = Bitmap.FromStream(stream);
             }
         }
     }
