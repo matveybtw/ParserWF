@@ -21,9 +21,17 @@ namespace ProjectParserWF
 {
     public partial class Form1 : Form
     {
+        private BindingSource dataSource = new BindingSource();
+
+
         public Form1()
         {
             InitializeComponent();
+
+            dataSource.DataSource = ans;
+            dataGridView1.DataSource = dataSource;
+            
+
             button1.BackColor = Color.Aqua;
             dataGridView1.Columns[4].Width += 50;
             dataGridView1.Columns[6].Width = 250;
@@ -84,6 +92,7 @@ namespace ProjectParserWF
         List<AnnouncementInfo> ans = new List<AnnouncementInfo>();
         private void AddToTable(AnnouncementInfo ai)
         {
+            
             DataGridViewRow row = new DataGridViewRow();
             row.CreateCells(dataGridView1);
             row.Cells[0].Value = ai.Id;
@@ -96,11 +105,11 @@ namespace ProjectParserWF
             dataGridView1.Rows.Add(row);
 
         }
-        void Write(string name)
+        void Write(string name, List<AnnouncementInfo> l)
         {
             List<string> names = new List<string>() { "Id", "Название", "Место", "Цена", "Описание", "Опубликовано", "Ссылка на объявление" };
             var memoryStream = new MemoryStream();
-            DataTable table = (DataTable)JsonConvert.DeserializeObject(JsonConvert.SerializeObject(ans), (typeof(DataTable)));
+            DataTable table = (DataTable)JsonConvert.DeserializeObject(JsonConvert.SerializeObject(l), (typeof(DataTable)));
             progressBar1.Value = 0;
             using (var fs = new FileStream(name + ".xlsx", FileMode.Create, FileAccess.Write))
             {
@@ -161,7 +170,8 @@ namespace ProjectParserWF
                         }
                         ai.Url = Regex.Replace(@"https://www.kijiji.ca" + item.GetAttributeValue("data-vip-url", ""), @"\s{2}", "");
                         ans.Add(ai);
-                        AddToTable(ai);
+                        dataSource.ResetBindings(false);
+                        //AddToTable(ai);
                     }
                 }
             }));
@@ -173,6 +183,10 @@ namespace ProjectParserWF
             if (ans.Count==0)
             {
                 MessageBox.Show("Вы не заполнили таблицу!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if (dataGridView1.Rows.Count == 0)
+            {
+                MessageBox.Show("Вы не выбрали ни одного элемента!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
@@ -188,7 +202,12 @@ namespace ProjectParserWF
                     progressBar1.Maximum = ans.Count;
                     progressBar1.Visible = true;
                     label2.Visible = true;
-                    Write(name.Replace(".xlsx", ""));
+                    List<AnnouncementInfo> newl = new List<AnnouncementInfo>();
+                    foreach (DataGridViewRow row in dataGridView1.Rows)
+                    {
+                        newl.Add(ans[row.Index]);
+                    }
+                    Write(name.Replace(".xlsx", ""), newl);
                     Task.Run(new Action(() =>
                     {
                         Thread.Sleep(2000);
@@ -214,18 +233,24 @@ namespace ProjectParserWF
 
         private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            ans[e.RowIndex].SaveAsPdf(e.RowIndex.ToString());
-            System.Diagnostics.Process.Start(e.RowIndex.ToString() + ".pdf");
-        }
-
-        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
             pictureBox1.Enabled = true;
             var request = WebRequest.Create(ans[e.RowIndex].Image);
             using (var response = request.GetResponse())
             using (var stream = response.GetResponseStream())
             {
                 pictureBox1.Image = Bitmap.FromStream(stream);
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (folderBrowserDialog1.ShowDialog()==DialogResult.OK)
+            {
+                foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                {
+                    ans[row.Index].SaveAsPdf(row.Index.ToString());
+                    System.Diagnostics.Process.Start(folderBrowserDialog1.SelectedPath + row.Index.ToString()+"\\"+ row.Index.ToString() + ".pdf");
+                }
             }
         }
     }

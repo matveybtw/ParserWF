@@ -29,6 +29,7 @@ namespace ProjectParserWF
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.button1 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -45,9 +46,21 @@ namespace ProjectParserWF
             this.label2 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.button3 = new System.Windows.Forms.Button();
+            this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            this.announcementInfoBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.idDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.placeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.priceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.descriptionDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.timePublishedDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.urlDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.imageDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.announcementInfoBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // button1
@@ -62,6 +75,7 @@ namespace ProjectParserWF
             // 
             // dataGridView1
             // 
+            this.dataGridView1.AutoGenerateColumns = false;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column2,
@@ -70,12 +84,20 @@ namespace ProjectParserWF
             this.Column5,
             this.Column6,
             this.Column7,
-            this.Column8});
+            this.Column8,
+            this.idDataGridViewTextBoxColumn,
+            this.nameDataGridViewTextBoxColumn,
+            this.placeDataGridViewTextBoxColumn,
+            this.priceDataGridViewTextBoxColumn,
+            this.descriptionDataGridViewTextBoxColumn,
+            this.timePublishedDataGridViewTextBoxColumn,
+            this.urlDataGridViewTextBoxColumn,
+            this.imageDataGridViewTextBoxColumn});
+            this.dataGridView1.DataSource = this.announcementInfoBindingSource;
             this.dataGridView1.Location = new System.Drawing.Point(15, 12);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.Size = new System.Drawing.Size(920, 386);
             this.dataGridView1.TabIndex = 1;
-            this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             this.dataGridView1.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellDoubleClick);
             // 
             // Column2
@@ -141,7 +163,7 @@ namespace ProjectParserWF
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(36, 604);
+            this.button2.Location = new System.Drawing.Point(36, 581);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 40);
             this.button2.TabIndex = 4;
@@ -151,7 +173,7 @@ namespace ProjectParserWF
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(179, 621);
+            this.progressBar1.Location = new System.Drawing.Point(176, 598);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(326, 23);
             this.progressBar1.TabIndex = 5;
@@ -159,7 +181,7 @@ namespace ProjectParserWF
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(314, 595);
+            this.label2.Location = new System.Drawing.Point(312, 564);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(81, 13);
             this.label2.TabIndex = 6;
@@ -174,11 +196,74 @@ namespace ProjectParserWF
             this.pictureBox1.TabIndex = 7;
             this.pictureBox1.TabStop = false;
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(36, 653);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 8;
+            this.button3.Text = "Save in PDF";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // announcementInfoBindingSource
+            // 
+            this.announcementInfoBindingSource.DataSource = typeof(ProjectParserWF.Form1.AnnouncementInfo);
+            // 
+            // idDataGridViewTextBoxColumn
+            // 
+            this.idDataGridViewTextBoxColumn.DataPropertyName = "Id";
+            this.idDataGridViewTextBoxColumn.HeaderText = "Id";
+            this.idDataGridViewTextBoxColumn.Name = "idDataGridViewTextBoxColumn";
+            // 
+            // nameDataGridViewTextBoxColumn
+            // 
+            this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
+            this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
+            this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
+            // 
+            // placeDataGridViewTextBoxColumn
+            // 
+            this.placeDataGridViewTextBoxColumn.DataPropertyName = "Place";
+            this.placeDataGridViewTextBoxColumn.HeaderText = "Place";
+            this.placeDataGridViewTextBoxColumn.Name = "placeDataGridViewTextBoxColumn";
+            // 
+            // priceDataGridViewTextBoxColumn
+            // 
+            this.priceDataGridViewTextBoxColumn.DataPropertyName = "Price";
+            this.priceDataGridViewTextBoxColumn.HeaderText = "Price";
+            this.priceDataGridViewTextBoxColumn.Name = "priceDataGridViewTextBoxColumn";
+            // 
+            // descriptionDataGridViewTextBoxColumn
+            // 
+            this.descriptionDataGridViewTextBoxColumn.DataPropertyName = "Description";
+            this.descriptionDataGridViewTextBoxColumn.HeaderText = "Description";
+            this.descriptionDataGridViewTextBoxColumn.Name = "descriptionDataGridViewTextBoxColumn";
+            // 
+            // timePublishedDataGridViewTextBoxColumn
+            // 
+            this.timePublishedDataGridViewTextBoxColumn.DataPropertyName = "TimePublished";
+            this.timePublishedDataGridViewTextBoxColumn.HeaderText = "TimePublished";
+            this.timePublishedDataGridViewTextBoxColumn.Name = "timePublishedDataGridViewTextBoxColumn";
+            // 
+            // urlDataGridViewTextBoxColumn
+            // 
+            this.urlDataGridViewTextBoxColumn.DataPropertyName = "Url";
+            this.urlDataGridViewTextBoxColumn.HeaderText = "Url";
+            this.urlDataGridViewTextBoxColumn.Name = "urlDataGridViewTextBoxColumn";
+            // 
+            // imageDataGridViewTextBoxColumn
+            // 
+            this.imageDataGridViewTextBoxColumn.DataPropertyName = "Image";
+            this.imageDataGridViewTextBoxColumn.HeaderText = "Image";
+            this.imageDataGridViewTextBoxColumn.Name = "imageDataGridViewTextBoxColumn";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1248, 709);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.progressBar1);
@@ -192,6 +277,7 @@ namespace ProjectParserWF
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.announcementInfoBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -215,6 +301,17 @@ namespace ProjectParserWF
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn idDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn nameDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn placeDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn priceDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn descriptionDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn timePublishedDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn urlDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn imageDataGridViewTextBoxColumn;
+        private System.Windows.Forms.BindingSource announcementInfoBindingSource;
     }
 }
 
