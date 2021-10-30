@@ -22,16 +22,12 @@ namespace ProjectParserWF
     public partial class Form1 : Form
     {
         private BindingSource dataSource = new BindingSource();
-
-
+        List<AnnouncementInfo> ans = new List<AnnouncementInfo>();
         public Form1()
         {
             InitializeComponent();
-
             dataSource.DataSource = ans;
             dataGridView1.DataSource = dataSource;
-            
-
             button1.BackColor = Color.Aqua;
             dataGridView1.Columns[4].Width += 50;
             dataGridView1.Columns[6].Width = 250;
@@ -51,13 +47,8 @@ namespace ProjectParserWF
             public string TimePublished { get; set; }
             public string Url { get; set; }
             public string Image { get; set; }
-            public AnnouncementInfo()
-            {
-
-            }
             public string UrlToQr(string name)
             {
-
                 PayloadGenerator.Url urlPayload = new PayloadGenerator.Url(Url);
                 QRCodeGenerator qrGenerator = new QRCodeGenerator();
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(urlPayload);
@@ -73,10 +64,10 @@ namespace ProjectParserWF
                 ht = ht.Replace("#ID", Id);
                 ht = ht.Replace("#NAME", Name);
                 ht = ht.Replace("#QR", qr.FullName);
-                ht =ht.Replace("#DESC", Description);
+                ht = ht.Replace("#DESC", Description);
                 ht = ht.Replace("#PLACE", Place);
                 ht = ht.Replace("#PRICE", Price);
-                ht=ht.Replace("#TP", TimePublished);
+                ht = ht.Replace("#TP", TimePublished);
 
                 //Console.WriteLine(ht);
                 HtmlToPdf htmlToPdf = new HtmlToPdf();
@@ -89,28 +80,13 @@ namespace ProjectParserWF
                 Console.WriteLine(name + " saved");
             }
         }
-        List<AnnouncementInfo> ans = new List<AnnouncementInfo>();
-        private void AddToTable(AnnouncementInfo ai)
-        {
-            
-            DataGridViewRow row = new DataGridViewRow();
-            row.CreateCells(dataGridView1);
-            row.Cells[0].Value = ai.Id;
-            row.Cells[1].Value = ai.Name;
-            row.Cells[2].Value = ai.Place;
-            row.Cells[3].Value = ai.Price;
-            row.Cells[4].Value = ai.Description;
-            row.Cells[5].Value = ai.TimePublished;
-            row.Cells[6].Value = ai.Url;
-            dataGridView1.Rows.Add(row);
-
-        }
         void Write(string name, List<AnnouncementInfo> l)
         {
             List<string> names = new List<string>() { "Id", "Название", "Место", "Цена", "Описание", "Опубликовано", "Ссылка на объявление" };
             var memoryStream = new MemoryStream();
             DataTable table = (DataTable)JsonConvert.DeserializeObject(JsonConvert.SerializeObject(l), (typeof(DataTable)));
             progressBar1.Value = 0;
+            progressBar1.Maximum = l.Count;
             using (var fs = new FileStream(name + ".xlsx", FileMode.Create, FileAccess.Write))
             {
                 IWorkbook workbook = new XSSFWorkbook();
@@ -145,9 +121,12 @@ namespace ProjectParserWF
             label2.Visible = false;
             dataGridView1.Rows.Clear();
             ans.Clear();
-            button1.Enabled = false;
             Task.Run(new Action(() =>
             {
+                Invoke(new Action(() =>
+                {
+                    button1.Enabled = false;
+                }));
                 for (int i = 0; i < numericUpDown1.Value; i++)
                 {
                     var url = @"https://www.kijiji.ca/b-canada/iphone/page-" + (i + 1).ToString() + @"/k0l0?rb=true&dc=true";
@@ -162,7 +141,12 @@ namespace ProjectParserWF
                         ai.Place = Regex.Replace(item.QuerySelector("div.location").InnerText.Trim(), @"\s{2}", "");
                         ai.Price = Regex.Replace(item.QuerySelector("div.price").InnerText.Trim(), @"\s{2}", "");
                         ai.Description = Regex.Replace(item.QuerySelector("div.description").InnerText.Trim(), @"\s{2}", "");
-                        ai.Image = Regex.Replace(item.QuerySelector("img[data-src]").GetAttributeValue("data-src", "").Trim(), @"\s{2}", "");
+                        ai.Image = "";
+                        var img = item.QuerySelector("img[data-src]");
+                        if (img != null)
+                        {
+                            ai.Image = Regex.Replace(img.GetAttributeValue("data-src", "").Trim(), @"\s{2}", "");
+                        }
                         var d = item.QuerySelector("span.date-posted");
                         if (d != null)
                         {
@@ -170,17 +154,26 @@ namespace ProjectParserWF
                         }
                         ai.Url = Regex.Replace(@"https://www.kijiji.ca" + item.GetAttributeValue("data-vip-url", ""), @"\s{2}", "");
                         ans.Add(ai);
-                        dataSource.ResetBindings(false);
-                        //AddToTable(ai);
                     }
+                    Invoke(new Action(() =>
+                    {
+                        dataSource.ResetBindings(true);
+                        dataGridView1.Refresh();
+                    }));
+
                 }
+                Invoke(new Action(() =>
+                {
+                    dataGridView1.Rows.RemoveAt(0);
+                    button1.Enabled = true;
+                }));
             }));
-            button1.Enabled = true;
+
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (ans.Count==0)
+            if (ans.Count == 0)
             {
                 MessageBox.Show("Вы не заполнили таблицу!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -192,20 +185,31 @@ namespace ProjectParserWF
             {
                 saveFileDialog1.DefaultExt = "xlsx";
                 saveFileDialog1.Filter = "Excel file(*.xlsx;*xls)|*.xlsx;*.xls";
-                string name="";
+                string name = "";
                 //do
                 //{
                 if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
+                    button2.Enabled = false;
                     name = saveFileDialog1.FileName;
                     progressBar1.Value = 0;
                     progressBar1.Maximum = ans.Count;
                     progressBar1.Visible = true;
                     label2.Visible = true;
                     List<AnnouncementInfo> newl = new List<AnnouncementInfo>();
-                    foreach (DataGridViewRow row in dataGridView1.Rows)
+                    foreach (DataGridViewCell cell in dataGridView1.SelectedCells)
                     {
-                        newl.Add(ans[row.Index]);
+                        if (!newl.Contains(ans[cell.RowIndex]))
+                        {
+                            newl.Add(ans[cell.RowIndex]);
+                        }
+                    }
+                    foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                    {
+                        if (!newl.Contains(ans[row.Index]))
+                        {
+                            newl.Add(ans[row.Index]);
+                        }
                     }
                     Write(name.Replace(".xlsx", ""), newl);
                     Task.Run(new Action(() =>
@@ -221,17 +225,79 @@ namespace ProjectParserWF
                         }
 
                     }));
+                    button2.Enabled = true;
                 }
-                        //break;
+                //break;
                 //    }
                 //} while (true);
                 //Interaction.InputBox("Question?", "Title", "Default Text");
-                
-                
+
+
             }
         }
 
-        private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (ans.Count == 0)
+            {
+                MessageBox.Show("Вы не заполнили таблицу!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if (dataGridView1.Rows.Count == 0)
+            {
+                MessageBox.Show("Вы не выбрали ни одного элемента!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    List<AnnouncementInfo> newl = new List<AnnouncementInfo>();
+                    foreach (DataGridViewCell cell in dataGridView1.SelectedCells)
+                    {
+                        if (!newl.Contains(ans[cell.RowIndex]))
+                        {
+                            newl.Add(ans[cell.RowIndex]);
+                        }
+                    }
+                    foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                    {
+                        if (!newl.Contains(ans[row.Index]))
+                        {
+                            newl.Add(ans[row.Index]);
+                        }
+                    }
+
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = newl.Count;
+                    progressBar1.Visible = true;
+                    label2.Visible = true;
+                    Task.Run(() =>
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            button3.Enabled = false;
+                        }));
+                        foreach (var an in newl)
+                        {
+                            an.SaveAsPdf(folderBrowserDialog1.SelectedPath + "\\"+ (newl.IndexOf(an)+1).ToString() + ".pdf");
+                            Invoke(new Action(() =>
+                            {
+                                progressBar1.Value++;
+                            }));
+                        }
+                        System.Diagnostics.Process.Start(folderBrowserDialog1.SelectedPath);
+                        Invoke(new Action(() =>
+                        {
+                            button3.Enabled = true;
+                        }));
+
+                    });
+
+
+                }
+            }
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             pictureBox1.Enabled = true;
             var request = WebRequest.Create(ans[e.RowIndex].Image);
@@ -239,18 +305,6 @@ namespace ProjectParserWF
             using (var stream = response.GetResponseStream())
             {
                 pictureBox1.Image = Bitmap.FromStream(stream);
-            }
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            if (folderBrowserDialog1.ShowDialog()==DialogResult.OK)
-            {
-                foreach (DataGridViewRow row in dataGridView1.SelectedRows)
-                {
-                    ans[row.Index].SaveAsPdf(row.Index.ToString());
-                    System.Diagnostics.Process.Start(folderBrowserDialog1.SelectedPath + row.Index.ToString()+"\\"+ row.Index.ToString() + ".pdf");
-                }
             }
         }
     }
