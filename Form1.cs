@@ -17,6 +17,7 @@ using QRCoder;
 using SelectPdf;
 using System.Text;
 using System.Net;
+using ProjectParserWF;
 namespace ProjectParserWF
 {
     public partial class Form1 : Form
@@ -56,6 +57,20 @@ namespace ProjectParserWF
                 Bitmap qrCodeImage = qrCode.GetGraphic(20);
                 qrCodeImage.Save(name);
                 return name;
+            }
+            public AnnouncementInfo Clone()
+            {
+                return new AnnouncementInfo()
+                {
+                    Id = this.Id,
+                    Name = this.Name,
+                    Place = this.Place,
+                    Price = this.Price,
+                    Description = this.Description,
+                    TimePublished = this.TimePublished,
+                    Url = this.Url,
+                    Image = this.Image,
+                };
             }
             public void SaveAsPdf(string name)
             {
@@ -306,6 +321,35 @@ namespace ProjectParserWF
             {
                 pictureBox1.Image = Bitmap.FromStream(stream);
             }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Form2 form;
+            
+            if (dataGridView1.SelectedRows.Count>0)
+            {
+               form= new Form2(ans[dataGridView1.SelectedRows[0].Index]);
+                form.ShowDialog();
+                if (form.save)
+                {
+                    ans[dataGridView1.SelectedRows[0].Index] = form.selected;
+                    dataGridView1.Refresh();
+                }
+                
+            }
+            else  if(dataGridView1.SelectedCells.Count > 0)
+            {
+                form = new Form2(ans[dataGridView1.SelectedCells[0].RowIndex]);
+                form.ShowDialog();
+                if (form.save)
+                {
+                    ans[dataGridView1.SelectedCells[0].RowIndex] = form.selected;
+                    dataGridView1.Refresh();
+                }
+
+            }
+
         }
     }
 }
